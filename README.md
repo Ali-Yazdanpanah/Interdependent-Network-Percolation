@@ -43,13 +43,13 @@ For a single network, $S(p)$ typically decays smoothly. In coupled networks with
 
 ![Phase transition comparison](figures/phase_transition.png)
 
-*Figure 1. Normalized LCC size $S(p)$ versus node failure probability $p$. The single-network baseline exhibits smooth degradation, while the interdependent system collapses more sharply due to iterative cross-layer dependency failures.*
+*Figure 1. Normalized LCC size $S(p)$ versus failure probability $p$ (Erdős–Rényi graphs with $n = 10^{3}$, target mean degree $k = 4$; $p$ swept from $0$ to $1$ in steps of $0.02$; $10$ Monte Carlo samples per $p$). The “single network” curve is site percolation; the interdependent curve uses the C++ cascade engine. The single-network baseline degrades more gradually, while the coupled system shows a much sharper loss of giant-component mass.*
 
 ### Runtime Benchmark: Python vs C++ Engine
 
 ![Python vs C++ benchmark](figures/benchmark.png)
 
-*Figure 2. Wall-clock time at $n = 10^4$, $p = 0.4$, over multiple i.i.d. trials (mean $\pm$ one sample standard deviation). The pybind11-backed C++ kernel reduces the typical single-run cost versus the NetworkX-based Python cascade, at the same graph instance and per-trial randomness.*
+*Figure 2. Wall-clock time for one interdependent-cascade run at $n = 10^{4}$ and $p = 0.4$. Timings are repeated over many independent trials on the same underlying graph pair; the bar heights are the **sample mean**, and the error bars are **mean ± one sample standard deviation** (20 trials in the default `plot_cascade.py` run). The pybind11 C++ kernel is compared to the pure Python (NetworkX) interdependent implementation using identical per-trial seeds.*
 
 ## Installation & Build Instructions
 
