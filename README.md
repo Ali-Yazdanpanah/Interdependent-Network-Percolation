@@ -79,6 +79,9 @@ Expected outputs:
 - `figures/phase_transition.png`
 - `figures/benchmark.png`
 
+## TODO
+- Parallel CUDA version for montecarlo
+
 ## Author
 
 Portfolio: [ali-yazdanpanah.github.io](https://ali-yazdanpanah.github.io/)
