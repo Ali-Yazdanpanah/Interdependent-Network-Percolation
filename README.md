@@ -4,7 +4,7 @@
 
 This project models cascading failures in **coupled complex networks** and studies how interdependence changes failure dynamics from a **second-order phase transition** (gradual degradation) to a **first-order phase transition** (abrupt systemic collapse).  
 
-The implementation is intentionally hybrid: Python orchestrates experiments and visualization, while the cascade core is executed in C++ and exported to Python via `pybind11`. This removes major runtime overhead associated with Python-level object traversal in repeated Monte Carlo experiments by using cache-friendly graph memory structures (adjacency lists; extensible to CSR layouts) and low-level BFS loops.
+The implementation is intentionally hybrid: Python orchestrates experiments and visualization, while the cascade core is executed in C++ and exported to Python via `pybind11`. This removes major runtime overhead associated with Python-level object traversal in repeated Monte Carlo experiments by using a contiguous **adjacency-list** layout and low-level BFS. The same data structure family maps cleanly to **CSR**-style memory if you need zero-copy numeric kernels later.
 
 ## Theoretical Background
 
@@ -32,7 +32,7 @@ For a single network, $S(p)$ typically decays smoothly. In coupled networks with
   - Produces publication-quality figures (`matplotlib`)
 - **C++ layer (`pybind11`)**
   - Executes interdependent cascade kernel
-  - Performs adjacency-list BFS to compute LCC under active-node masks
+  - Adjacency lists + BFS to compute the LCC under active-node bitmasks
   - Minimizes Python overhead in critical loops
 - **Binding layer**
   - `PYBIND11_MODULE(cascade_sim, m)` exposes C++ functions as importable Python module APIs
@@ -49,33 +49,47 @@ For a single network, $S(p)$ typically decays smoothly. In coupled networks with
 
 ![Python vs C++ benchmark](figures/benchmark.png)
 
-*Figure 2. Single-run runtime at $n = 10^4$, $p = 0.4$. The pybind11-backed C++ cascade kernel reduces execution time relative to the pure Python implementation, demonstrating the benefit of moving BFS and cascade loops into compiled code.*
+*Figure 2. Wall-clock time at $n = 10^4$, $p = 0.4$, over multiple i.i.d. trials (mean $\pm$ one sample standard deviation). The pybind11-backed C++ kernel reduces the typical single-run cost versus the NetworkX-based Python cascade, at the same graph instance and per-trial randomness.*
 
 ## Installation & Build Instructions
 
-From the project root:
+**Recommended (editable install: builds `cascade_sim` and you can `import` it with no `PYTHONPATH` hacks):**
 
 ```bash
 cd /Users/aliyazdanpanah/Work/site-percolation
 python3 -m venv .venv
 source .venv/bin/activate
-pip install numpy networkx matplotlib pybind11
+pip install -U pip
+pip install -e ".[dev]"
 ```
 
-Build the C++ extension:
+**Optional: reproduce figures with `make`**
 
 ```bash
-cmake -S . -B build -Dpybind11_DIR="$(python -m pybind11 --cmakedir)"
+make figures
+# or, with the same venv:
+python3 plot_cascade.py --help
+python3 plot_cascade.py --seed 12345
+```
+
+**Alternative (CMake only, useful if you prefer an out-of-tree `build/` artifact):**
+
+```bash
+pip install "pybind11>=2.12"
+cmake -S . -B build -Dpybind11_DIR="$(python3 -m pybind11 --cmakedir)"
 cmake --build build -j
+PYTHONPATH=build python3 plot_cascade.py
 ```
 
-Run experiments and generate figures:
+**Testing & static checks (local, no CI required):** run `pip install -e ".[dev]"` first so `cascade_sim` and dev tools are available, then:
 
 ```bash
-PYTHONPATH=build python plot_cascade.py
+make test
+make ruff
 ```
 
-Expected outputs:
+Expected figure outputs (after `plot_cascade.py`):
+
 - `figures/phase_transition.png`
 - `figures/benchmark.png`
 

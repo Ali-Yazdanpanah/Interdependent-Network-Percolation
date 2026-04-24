@@ -5,19 +5,19 @@ Monte Carlo average of the largest connected component (LCC) size vs. node failu
 
 from __future__ import annotations
 
-import numpy as np
-import networkx as nx
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 
 
-def generate_network(n: int, k: float) -> nx.Graph:
+def generate_network(n: int, k: float, seed: int | None = None) -> nx.Graph:
     """
     Erdős–Rényi G(n, p) with edge probability p = k / (n - 1) so expected mean degree is k.
     """
     if n <= 0:
         return nx.empty_graph(0, create_using=nx.Graph)
     p_edge = k / (n - 1) if n > 1 else 0.0
-    return nx.erdos_renyi_graph(n, p_edge)
+    return nx.erdos_renyi_graph(n, p_edge, seed=seed)
 
 
 def site_percolation(
@@ -46,6 +46,11 @@ def site_percolation(
     return lcc / n
 
 
+def graph_to_adjacency_list(G: nx.Graph, n: int) -> list[list[int]]:
+    """Adjacency list aligned with node labels 0..n-1 (used by the C++ engine)."""
+    return [list(G.neighbors(i)) for i in range(n)]
+
+
 def _largest_component_nodes(G: nx.Graph, active_nodes: set[int]) -> set[int]:
     """
     Return nodes in the LCC of G induced by active_nodes.
@@ -67,7 +72,7 @@ def interdependent_percolation(
     Simulate cascading failures on two interdependent networks with 1-to-1 node dependency.
     """
     n = G_A.number_of_nodes()
-    if n == 0:
+    if n == 0 or G_B.number_of_nodes() != n:
         return 0.0
 
     active_A = set(G_A.nodes())
@@ -102,7 +107,7 @@ def main() -> None:
     n = 1000
     k = 4.0
     mc_runs = 10
-    p_values = np.linspace(0.0, 1.0, int(1.0 / 0.02) + 1)  # 0.0, 0.02, ..., 1.0
+    p_values = np.linspace(0.0, 1.0, 51)  # 0.0, 0.02, …, 1.0
 
     G_A = generate_network(n, k)
     G_B = generate_network(n, k)
