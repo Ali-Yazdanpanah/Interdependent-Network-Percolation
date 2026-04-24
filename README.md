@@ -8,21 +8,21 @@ The implementation is intentionally hybrid: Python orchestrates experiments and 
 
 ## Theoretical Background
 
-For an Erdős–Rényi random graph \( G(n, p_e) \), each edge appears independently with probability:
+For an Erdős–Rényi random graph $G(n, p_e)$, each edge appears independently with probability:
 
-\[
-p_e = \frac{k}{n-1},
-\]
+$$
+p_e = \frac{k}{n-1}
+$$
 
-where \( k \) is the target mean degree.
+where $k$ is the target mean degree.
 
-In **site percolation**, a fraction \( p \) of nodes is removed, and resilience is measured by the normalized size of the Largest Connected Component (LCC):
+In **site percolation**, a fraction $p$ of nodes is removed, and resilience is measured by the normalized size of the Largest Connected Component (LCC):
 
-\[
-S(p) = \frac{|LCC(p)|}{n}.
-\]
+$$
+S(p) = \frac{|LCC(p)|}{n}
+$$
 
-For a single network, \( S(p) \) typically decays smoothly. In coupled networks with one-to-one dependencies, failures propagate across layers and trigger iterative dependency + connectivity pruning, which can induce discontinuous (first-order-like) collapse behavior.
+For a single network, $S(p)$ typically decays smoothly. In coupled networks with one-to-one dependencies, failures propagate across layers and trigger iterative dependency + connectivity pruning, which can induce discontinuous (first-order-like) collapse behavior.
 
 ## System Architecture
 
@@ -43,13 +43,13 @@ For a single network, \( S(p) \) typically decays smoothly. In coupled networks 
 
 ![Phase transition comparison](figures/phase_transition.png)
 
-*Figure 1. Normalized LCC size \( S(p) \) versus node failure probability \( p \). The single-network baseline exhibits smooth degradation, while the interdependent system collapses more sharply due to iterative cross-layer dependency failures.*
+*Figure 1. Normalized LCC size $S(p)$ versus node failure probability $p$. The single-network baseline exhibits smooth degradation, while the interdependent system collapses more sharply due to iterative cross-layer dependency failures.*
 
 ### Runtime Benchmark: Python vs C++ Engine
 
 ![Python vs C++ benchmark](figures/benchmark.png)
 
-*Figure 2. Single-run runtime at \( n = 10{,}000 \), \( p = 0.4 \). The pybind11-backed C++ cascade kernel reduces execution time relative to the pure Python implementation, demonstrating the benefit of moving BFS and cascade loops into compiled code.*
+*Figure 2. Single-run runtime at $n = 10^4$, $p = 0.4$. The pybind11-backed C++ cascade kernel reduces execution time relative to the pure Python implementation, demonstrating the benefit of moving BFS and cascade loops into compiled code.*
 
 ## Installation & Build Instructions
 
@@ -79,8 +79,9 @@ Expected outputs:
 - `figures/phase_transition.png`
 - `figures/benchmark.png`
 
-## TODO
-- Parallel CUDA version for montecarlo
+## Future work
+
+- **GPU-accelerated Monte Carlo:** parallelize independent cascade realizations and parameter sweeps on CUDA (e.g. batched runs over seeds and $p$) to scale experiments to larger graphs and higher replication counts with minimal host–device transfer overhead.
 
 ## Author
 
